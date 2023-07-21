@@ -1,3 +1,3 @@
 # log-diff-util
 
-build you own local.settings.json
+*You must build your own local.settings.json
