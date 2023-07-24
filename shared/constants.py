@@ -1,17 +1,7 @@
-output_folder = 'C:\\Users\\MDasco\\Projects\\_project-laboratrory\\sf-az-logs-utility\\output\\'
+import os
 
-az_fname = output_folder + 'az_corrID_{0}.csv'
-fe_fname = output_folder + 'sf_fe_corrID_{0}.csv'
-ms_fname = output_folder + 'sf_ms_corrID_{0}.csv'
-
-azdf = output_folder + 'azdf.csv'
-sffe = output_folder + 'sffe.csv'
-sfms = output_folder + 'sfms.csv'
-path = output_folder + 'output.xlsx'
-
-diff_assy = """
-Name        : {0}
-Difference  : {1}
-Create Date : {2}
-As of       : {3}
-"""
+cw_dir = os.getcwd()
+output_folder = cw_dir + '\\' + 'output' + '\\'
+diff_report = output_folder + 'diff_report.xlsx'
+date_range_report = output_folder + 'date_range_report.xlsx'
+date_today_report = output_folder + 'today_report.xlsx'

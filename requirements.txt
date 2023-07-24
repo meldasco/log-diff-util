@@ -1,0 +1,13 @@
+cacheout
+cerberus
+deepdiff
+httpx
+numpy
+openpyxl
+py-linq
+pyodbc
+pandas
+requests
+sqlalchemy
+snowflake-sqlalchemy
+snowflake-connector-python
