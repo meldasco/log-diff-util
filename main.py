@@ -6,18 +6,17 @@
 
 import json
 from datetime import datetime
-
-from dao.dao_base import *
+from shared.repository import *
+from shared.sql_engine import *
 from shared.constants import *
-from shared.helper_functions import *
-from repositories.repository import *
+from shared.common import *
 
 
 def get_config():
     with open('local_settings.json') as file:
         local_settings = json.load(file)
 
-    db_data = local_settings.get('database')
+    db_data = local_settings.get('Values')
     return db_data
 
 
@@ -51,10 +50,8 @@ class LogDiff:
     def get_log_diff_from_se_id_date_entry(self, scoring_engine_id, date_diff):
         result_df = self.get_log_diff(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
         print(result_df)
-        print(diff_report)
         with pd.ExcelWriter(diff_report) as writer:  
             result_df.to_excel(writer, index=False)
-        return result_df
 
     def get_log_diff_from_date_range(self, start_date, end_date):
         date_range_list=[]
@@ -68,7 +65,7 @@ class LogDiff:
             for scoring_engine_id in self.scoring_engine_ids:
                 if scoring_engine_id not in unresolved_sf_tables:
                     date_range_df = self.get_log_diff(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
-            # print(date_range_df)
+            print(date_range_df)
             with pd.ExcelWriter(date_range_report) as writer:  
                 date_range_df.to_excel(writer, index=False)
 
@@ -78,7 +75,7 @@ class LogDiff:
         for scoring_engine_id in self.scoring_engine_ids:
             if scoring_engine_id not in unresolved_sf_tables:
                 date_today_df = self.get_log_diff(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
-        # print(date_today_df)
+        print(date_today_df)
         with pd.ExcelWriter(date_today_report) as writer:  
             date_today_df.to_excel(writer, index=False)
     
@@ -117,6 +114,6 @@ class LogDiff:
 
 if __name__ == '__main__':
     log_diff = LogDiff()
-    # log_diff.get_log_diff_from_se_id_date_entry('100014','2023-07-12')
-    log_diff.get_log_diff_from_date_range('2023-07-21', '2023-07-24')
+    # log_diff.get_log_diff_from_se_id_date_entry('10009','2023-07-24')
+    log_diff.get_log_diff_from_date_range('2023-07-24', '2023-07-25')
     # log_diff.get_log_diff_from_today()
