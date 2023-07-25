@@ -1,13 +1,20 @@
-# In Terminal, run "python -m venv .venv"
-# Press Ctrl + Shift + P, select 'Python: Select Interpreter',
-# then 'Enter interpreter path' manually in ".venv\Scripts\python.exe"
-# Update installed pip "python -m pip install --upgrade pip"
-# Install requirements "python -m pip install -r requirements.txt"
+"""
+- In Terminal, run "python -m venv .venv"
+- Press Ctrl + Shift + P, select 'Python: Select Interpreter',
+    then 'Enter interpreter path' manually in ".venv\Scripts\python.exe"
+- Update installed pip "python -m pip install --upgrade pip"
+- Install requirements "python -m pip install -r requirements.txt
+- To Run using Terminal:
+    - type "python -B main.py <scoring engine id> <specific date>"    --> For specific project and date
+    - type "python -B main.py <start date> <end date>"                --> For all project and date range
+    - type "python -B main.py"                                        --> For all project of today's date
+"""
 
+import sys
 import json
 from datetime import datetime
-from shared.repository import *
-from shared.sql_engine import *
+from shared.repositories import *
+from shared.engines import *
 from shared.constants import *
 from shared.common import *
 
@@ -47,15 +54,14 @@ class LogDiff:
             for idx, row in scoring_engine.iterrows():
                 self.scoring_engine_ids.append(row['ScoringEngineId'])
 
-    def get_log_diff_from_se_id_date_entry(self, scoring_engine_id, date_diff):
-        result_df = self.get_log_diff(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
+    def get_log_diff_from_se_id_date(self, scoring_engine_id, date_diff):
+        result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
         print(result_df)
         with pd.ExcelWriter(diff_report) as writer:  
             result_df.to_excel(writer, index=False)
 
     def get_log_diff_from_date_range(self, start_date, end_date):
         date_range_list=[]
-        unresolved_sf_tables = [10008]
         date_ranges = pd.date_range(start=start_date, end=end_date)
 
         for date_range in date_ranges:
@@ -63,23 +69,20 @@ class LogDiff:
         
         for date_diff in date_range_list:
             for scoring_engine_id in self.scoring_engine_ids:
-                if scoring_engine_id not in unresolved_sf_tables:
-                    date_range_df = self.get_log_diff(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
+                date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
             print(date_range_df)
             with pd.ExcelWriter(date_range_report) as writer:  
                 date_range_df.to_excel(writer, index=False)
 
     def get_log_diff_from_today(self):
         date_diff = self.trigger_time_stamp.strftime("%Y-%m-%d")
-        unresolved_sf_tables = [10008]
         for scoring_engine_id in self.scoring_engine_ids:
-            if scoring_engine_id not in unresolved_sf_tables:
-                date_today_df = self.get_log_diff(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
+            date_today_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, counts=True)
         print(date_today_df)
         with pd.ExcelWriter(date_today_report) as writer:  
             date_today_df.to_excel(writer, index=False)
     
-    def get_log_diff(self, scoring_engine_id, freq, date_diff, env, counts=None):
+    def parse_compare(self, scoring_engine_id, freq, date_diff, env, counts=None):
         # Parse df, get differences, and return counts based on the same criteria
         sf_log_list=[]
         log_diff_summary = self.repo.get_log_diff_queries(scoring_engine_id, freq, env)
@@ -111,9 +114,28 @@ class LogDiff:
         log_diff_df = pd.DataFrame({'Name': self.name_list, 'Difference': self.diff_list, 'Create Date': self.create_date_list})
         return log_diff_df
 
+def validate(date_text):
+    try:
+        if date_text != datetime.strptime(date_text, "%Y-%m-%d").strftime('%Y-%m-%d'):
+            raise ValueError
+        return True
+    except ValueError:
+        return False
 
-if __name__ == '__main__':
+def check_difference(argv1=None, argv2=None):
     log_diff = LogDiff()
-    # log_diff.get_log_diff_from_se_id_date_entry('10009','2023-07-24')
-    log_diff.get_log_diff_from_date_range('2023-07-24', '2023-07-25')
-    # log_diff.get_log_diff_from_today()
+    if (argv1 is not None and validate(argv1) is False) and (argv2 is not None and validate(argv2) is True):
+        log_diff.get_log_diff_from_se_id_date(argv1, argv2)
+    
+    elif (argv1 is not None and validate(argv1) is True) and (argv2 is not None and validate(argv2) is True):
+        log_diff.get_log_diff_from_date_range(argv1, argv2)
+    
+    elif argv1 is None and argv2 is None:
+        log_diff.get_log_diff_from_today()
+
+
+if __name__ == "__main__":
+    if sys.argv is not None and len(sys.argv) > 1:
+        check_difference(f'{sys.argv[1]}', f'{sys.argv[2]}')
+    else:
+        check_difference()
