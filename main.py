@@ -12,11 +12,12 @@
 
 import sys
 import json
+import logging
 from datetime import datetime
-from shared.repositories import *
+from shared.common import *
 from shared.engines import *
 from shared.constants import *
-from shared.common import *
+from shared.repositories import *
 
 
 def get_config():
@@ -113,21 +114,31 @@ class LogDiff:
 
         log_diff_df = pd.DataFrame({'Name': self.name_list, 'Difference': self.diff_list, 'Create Date': self.create_date_list})
         return log_diff_df
+    
+    def clear_cache(self):
+        logging.info('Clearing cache...')
+        print(self.repo.ld_cache)
+        try:
+            self.repo.ld_cache.clear()
+            message = "Cache successfully cleared"
+        except Exception as e:
+            message = f"Error clearing Cache: {str(e)}"
+        print(message)
 
-def validate(date_text):
+
+def check_if_date(date_text):
     try:
         if date_text != datetime.strptime(date_text, "%Y-%m-%d").strftime('%Y-%m-%d'):
             raise ValueError
         return True
     except ValueError:
         return False
-
+    
 def check_difference(argv1=None, argv2=None):
-    log_diff = LogDiff()
-    if (argv1 is not None and validate(argv1) is False) and (argv2 is not None and validate(argv2) is True):
+    if (argv1 is not None and check_if_date(argv1) is False) and (argv2 is not None and check_if_date(argv2) is True):
         log_diff.get_log_diff_from_se_id_date(argv1, argv2)
     
-    elif (argv1 is not None and validate(argv1) is True) and (argv2 is not None and validate(argv2) is True):
+    elif (argv1 is not None and check_if_date(argv1) is True) and (argv2 is not None and check_if_date(argv2) is True):
         log_diff.get_log_diff_from_date_range(argv1, argv2)
     
     elif argv1 is None and argv2 is None:
@@ -135,7 +146,10 @@ def check_difference(argv1=None, argv2=None):
 
 
 if __name__ == "__main__":
-    if sys.argv is not None and len(sys.argv) > 1:
-        check_difference(f'{sys.argv[1]}', f'{sys.argv[2]}')
-    else:
+    log_diff = LogDiff()
+    if len(sys.argv) > 2:
+        check_difference(str(sys.argv[1]), str(sys.argv[2]))
+    elif len(sys.argv) == 2 and 'clearcache' in sys.argv:
+        log_diff.clear_cache()
+    elif len(sys.argv) == 1:
         check_difference()
