@@ -2,75 +2,81 @@ from cacheout import Cache
 from shared.engines import *
 
 
-mr_cache = Cache()
+ld_cache = Cache()
 
 class Repository(SQLReader):
     def __init__(self) -> None:
         super().__init__()
 
     def get_scoring_engine_ids(self, freq:str):
-        sql = """
-        SELECT
-            [ScoringEngineId]
-            ,[Frequency]
-        FROM [dbo].[ScoringEngineJobMonitoringConfiguration]
-        WHERE Frequency = '{0}'
-        """.format(freq)
-        result = super().read_sql_to_df(sql, 'SAMetadata')
+        key = f'get_scoring_engine_ids_{freq}'
+        if key in ld_cache:
+            result = ld_cache.get(key)
+        else:
+            sql = """
+            SELECT
+                [ScoringEngineId]
+                ,[Frequency]
+            FROM [dbo].[ScoringEngineJobMonitoringConfiguration]
+            WHERE Frequency = '{0}'
+            """.format(freq)
+            result = super().read_sql_to_df(sql, 'SAMetadata')
+            ld_cache.set(key, result)
         return result
 
     def get_log_diff_queries(self, scoringEngineId:int, freq:str, environment):
-        env = 'PRD' if environment == 'PROD' else environment
-        sql = """
-        SELECT JobMonitoringConfigurationDetailLogDiffId
-        ,SQLName
-        ,SQL
-        ,Environment
-        ,TableName
-        ,Prefix
-        ,DBKey
-        ,diff.CreateDateTime
-        ,diff.ModifiedDateTime
-        ,diff.ActiveStartDateTime
-        ,diff.ActiveEndDateTime
-        ,diff.JobMonitoringConfigurationId
-        FROM dbo.ScoringEngineJobMonitoringConfigurationDetailLogDiff diff
-        INNER JOIN dbo.ScoringEngineJobMonitoringConfiguration conf
-        ON conf.JobMonitoringConfigurationId = diff.JobMonitoringConfigurationId
-        WHERE conf.ActiveStartDateTime <= getDate() and
-        conf.ActiveEndDateTime > getDate() and
-        diff.ActiveStartDateTime <= getDate() and
-        diff.ActiveEndDateTime > getDate() and
-        conf.ScoringEngineID = {0} and
-        conf.Frequency = '{1}' and
-        diff.Environment = '{2}'
-        """.format(scoringEngineId, freq, env)
-        result = super().read_sql_to_df(sql, 'SAMetadata')
+        key = f'get_log_diff_queries_{scoringEngineId}_{freq}_{environment}'
+        if key in ld_cache:
+            result = ld_cache.get(key)
+        else:
+            env = 'PRD' if environment == 'PROD' else environment
+            sql = """
+            SELECT JobMonitoringConfigurationDetailLogDiffId
+            ,SQLName
+            ,SQL
+            ,Environment
+            ,TableName
+            ,Prefix
+            ,DBKey
+            ,diff.CreateDateTime
+            ,diff.ModifiedDateTime
+            ,diff.ActiveStartDateTime
+            ,diff.ActiveEndDateTime
+            ,diff.JobMonitoringConfigurationId
+            FROM dbo.ScoringEngineJobMonitoringConfigurationDetailLogDiff diff
+            INNER JOIN dbo.ScoringEngineJobMonitoringConfiguration conf
+            ON conf.JobMonitoringConfigurationId = diff.JobMonitoringConfigurationId
+            WHERE conf.ActiveStartDateTime <= getDate() and
+            conf.ActiveEndDateTime > getDate() and
+            diff.ActiveStartDateTime <= getDate() and
+            diff.ActiveEndDateTime > getDate() and
+            conf.ScoringEngineID = {0} and
+            conf.Frequency = '{1}' and
+            diff.Environment = '{2}'
+            """.format(scoringEngineId, freq, env)
+            result = super().read_sql_to_df(sql, 'SAMetadata')
+            ld_cache.set(key, result)
+        return result
+
+    def get_az_df(self, date, query, dbkey):
+        key = f'get_az_df_{date}_{query}_{dbkey}'
+        if key in ld_cache:
+            result = ld_cache.get(key)
+        else:
+            result = super().read_sql_to_df(query.format(date), dbkey)
+            print('Parsed data from AZ: {} rows x {} columns'.format(len(result), len(result.columns)))
+            ld_cache.set(key, result)
         return result
 
     def get_sf_df(self, query, date):
-        return super().read_sf_sql_to_df(query.format(date))
-
-    def get_az_df(self, scoringEngineId:int, date):
-        results_all = []
-        sql = """
-        SELECT SyntheticTestHealthCheckQuery
-        FROM ScoringEngine
-        WHERE ScoringEngineId = {0}
-        """.format(scoringEngineId)
-        result = super().read_sql_to_df(sql, 'SAMetadata')
-        if not result.empty and len(result) > 0:
-            for idx, row in result.iterrows():
-                
-                project_name = row['SyntheticTestHealthCheckQuery'].split('FROM ')[1].split('ResponseService')[0].replace('[','')
-
-                az_sql = """
-                select * from {0}ResponseScore where {0}InputScoreRequestid in (
-                select {0}InputScoreRequestid from {0}ResponseScore 
-                where CONVERT(Date, CreateDateTime) = '{1}' and Status = 'Completed')
-                """.format(project_name,date)
-                results = super().read_sql_to_df(az_sql, 'SAOp')
-        return results # results_all #
+        key = f'get_sf_df_{query}_{date}'
+        if key in ld_cache:
+            result = ld_cache.get(key)
+        else:
+            result = super().read_sf_sql_to_df(query.format(date))
+            print('Parsed data from SF: {} rows x {} columns'.format(len(result), len(result.columns)))
+            ld_cache.set(key, result)
+        return result
 
 
 

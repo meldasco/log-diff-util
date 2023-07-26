@@ -92,12 +92,12 @@ class LogDiff:
                 self.query_list.append([query, row['SQLName'], row['DBKey']])
 
                 if 'Azure' in row['SQLName']:
-                    az_sql_name = row['TableName'].replace('Orch', '').replace('SE', '').replace('ResponseScore', '')
-                    az_df = self.repo.get_az_df(scoring_engine_id, date_diff)
+                    az_sql_name = row['TableName'].replace('Orch', '').replace('SE', '').replace('ResponseScore', '').strip()
+                    az_df = self.repo.get_az_df(date_diff, query, row['DBKey'])
                 if 'SF' in row['SQLName']:
                     sf_query = self.repo.get_sf_df(query, date_diff)
                     sf_query.rename(columns={'input_correlation_id':'correlationid'}, inplace=True)
-                    sf_log_list.append([sf_query,row['SQLName'].replace('Log Count', '')])
+                    sf_log_list.append([sf_query, row['SQLName'].replace('Log Count', '').strip()])
 
         for sf_df, sf_sql_name in  sf_log_list:
             if counts is not None and counts == True:
