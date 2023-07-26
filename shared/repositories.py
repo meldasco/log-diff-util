@@ -2,8 +2,6 @@ from cacheout import Cache
 from shared.engines import *
 
 
-# ld_cache = Cache()
-
 class Repository(SQLReader):
     def __init__(self) -> None:
         super().__init__()

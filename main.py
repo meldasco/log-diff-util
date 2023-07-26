@@ -12,7 +12,6 @@
 
 import sys
 import json
-import logging
 from datetime import datetime
 from shared.common import *
 from shared.engines import *
@@ -116,8 +115,7 @@ class LogDiff:
         return log_diff_df
     
     def clear_cache(self):
-        logging.info('Clearing cache...')
-        print(self.repo.ld_cache)
+        print('Clearing cache...\n{}'.format(self.repo.ld_cache))
         try:
             self.repo.ld_cache.clear()
             message = "Cache successfully cleared"
