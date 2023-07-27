@@ -111,14 +111,13 @@ class LogDiff:
                 # Get column name's data differences from azure df to snowflakes df
                 az_not_in_sf = get_sf_azure_diff(az_df,sf_df,column_name)
                 self.log_diff_df = az_not_in_sf[column_name]
-            
         return self.log_diff_df
     
     def clear_cache(self):
-        print('Clearing cache...\n{}'.format(self.repo.ld_cache))
+        print('Clearing cache... {}'.format(self.repo.ld_cache))
         try:
             self.repo.ld_cache.clear()
-            message = "Cache successfully cleared"
+            message = "Cache successfully cleared {}".format(self.repo.ld_cache)
         except Exception as e:
             message = f"Error clearing Cache: {str(e)}"
         print(message)
@@ -141,32 +140,11 @@ def check_difference(*argv):
         elif check_if_date(argv[1]) is True and check_if_date(argv[2]) is True:
             log_diff.get_log_diff_from_date_range(argv[1], argv[2], argv[3])
     
-    elif len(argv) < 3 and 'clearcache' in sys.argv:
+    if len(argv) < 3:
+        if 'clearcache' not in sys.argv:
+            log_diff.get_log_diff_from_today(argv[1])
         log_diff.clear_cache()
-
-    elif len(argv) < 3:
-        log_diff.get_log_diff_from_today(argv[1])
-
+        
 
 if __name__ == "__main__":
     check_difference(*sys.argv)
-
-"""def check_difference(argv1=None, argv2=None):
-    if (argv1 is not None and check_if_date(argv1) is False) and (argv2 is not None and check_if_date(argv2) is True):
-        log_diff.get_log_diff_from_se_id_date(argv1, argv2)
-    
-    elif (argv1 is not None and check_if_date(argv1) is True) and (argv2 is not None and check_if_date(argv2) is True):
-        log_diff.get_log_diff_from_date_range(argv1, argv2)
-    
-    elif argv1 is None and argv2 is None:
-        log_diff.get_log_diff_from_today()
-
-
-if __name__ == "__main__":
-    log_diff = LogDiff()
-    if len(sys.argv) > 2:
-        check_difference(str(sys.argv[1]), str(sys.argv[2]))
-    elif len(sys.argv) == 2 and 'clearcache' in sys.argv:
-        log_diff.clear_cache()
-    elif len(sys.argv) == 1:
-        check_difference()"""
