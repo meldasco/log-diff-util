@@ -111,6 +111,7 @@ def write_diff(df1, df2):
             if line not in fileone:
                 outFile.write(line)
 
+
 def get_df_difference(df1,df2,column_name):
     df1.columns = map(str.lower, df1.columns)
     df2.columns = map(str.lower, df2.columns)
@@ -125,7 +126,7 @@ def get_sf_azure_diff(df1,df2,column_name,counts=None):
     if counts is not None and counts is True:
         return len(diff)
     else:
-        return diff[column_name.casefold()]
+        return diff
 
 
 def isfloat(num):
