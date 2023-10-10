@@ -3,11 +3,14 @@
 - Press Ctrl + Shift + P, select 'Python: Select Interpreter',
     then 'Enter interpreter path' manually in ".venv\Scripts\python.exe"
 - Update installed pip "python -m pip install --upgrade pip"
-- Install requirements "python -m pip install -r requirements.txt
+- Install requirements "python -m pip install -r requirements.txt"
 - To Run using Terminal:
-    - type "python -B main.py <scoring engine id> <specific date> <column name>"    --> For specific project and date
-    - type "python -B main.py <start date> <end date> <column name>"                --> For all project and date range
-    - type "python -B main.py <column name>"                                        --> For all project of today's date
+    - type "python -B main.py <scoring engine id> <specific date> <column name> diffdata"   --> For specific project, date and difference data
+    - type "python -B main.py <scoring engine id> <specific date> <column name>"            --> For specific project and date
+    - type "python -B main.py <start date> <end date> <column name>"                        --> For all project and date range
+    - type "python -B main.py <column name>"                                                --> For all project of today's date
+
+    *Sample Run Syntax: python -B main.py 10007 2023-10-09 correlationid diffdata
 """
 
 import sys
@@ -60,6 +63,12 @@ class LogDiff:
         with pd.ExcelWriter(diff_report) as writer:  
             result_df.to_excel(writer, index=False)
 
+    def get_log_diff_from_se_id_date_diff_data(self, scoring_engine_id, date_diff, column_name):
+        result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
+        print(result_df)
+        with pd.ExcelWriter(diff_report) as writer:  
+            result_df.to_excel(writer, index=False)
+
     def get_log_diff_from_date_range(self, start_date, end_date, column_name):
         date_range_list=[]
         date_ranges = pd.date_range(start=start_date, end=end_date)
@@ -102,7 +111,7 @@ class LogDiff:
         for sf_df, sf_sql_name in  sf_log_list:
             if counts is not None and counts == True:
                 # Count differences from azure df to snowflakes df
-                az_not_in_sf = get_sf_azure_diff(az_df,sf_df,column_name,counts=True)
+                az_not_in_sf = get_sf_azure_diff(az_df,sf_df,column_name, counts=None)
                 self.name_list.append(f'{az_sql_name} - {sf_sql_name}')
                 self.diff_list.append(az_not_in_sf)
                 self.create_date_list.append(date_diff)
@@ -134,11 +143,16 @@ def check_if_date(date_text):
 def check_difference(*argv):
     log_diff = LogDiff()
     if len(argv) > 3:
-        if check_if_date(argv[1]) is False and check_if_date(argv[2]) is True:
+        if check_if_date(argv[1]) is False and check_if_date(argv[2]) is True and argv[4] == 'diffdata':
+            log_diff.get_log_diff_from_se_id_date_diff_data(argv[1], argv[2], argv[3])
+        
+        elif check_if_date(argv[1]) is False and check_if_date(argv[2]) is True and argv[4] is None:
             log_diff.get_log_diff_from_se_id_date(argv[1], argv[2], argv[3])
     
-        elif check_if_date(argv[1]) is True and check_if_date(argv[2]) is True:
+        elif check_if_date(argv[1]) is True and check_if_date(argv[2]) is True and argv[4] is None:
             log_diff.get_log_diff_from_date_range(argv[1], argv[2], argv[3])
+
+        
     
     if len(argv) < 3:
         if 'clearcache' not in sys.argv:
