@@ -69,7 +69,7 @@ class LogDiff:
 
     def get_log_diff_data_from_se_id_date(self, scoring_engine_id, date_diff, column_name):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
-        print(result_df)
+        # print(result_df)
         with pd.ExcelWriter(diff_report) as writer:  
             result_df.to_excel(writer, index=False)
 
@@ -97,6 +97,7 @@ class LogDiff:
     
     def parse_compare(self, scoring_engine_id, freq, date_diff, env, column_name, counts=None):
         # Parse df, get differences, and return counts based on the same criteria
+        az_log_list=[]
         sf_log_list=[]
         log_diff_summary = self.repo.get_log_diff_queries(scoring_engine_id, freq, env)
         if not log_diff_summary.empty and len(log_diff_summary) > 0:
@@ -105,28 +106,27 @@ class LogDiff:
                 self.query_list.append([query, row['SQLName'], row['DBKey']])
 
                 if 'Azure' in row['SQLName']:
-                    az_sql_name = row['TableName'].replace('Orch', '').replace('SE', '').replace('ResponseScore', '').strip()
-                    az_df = self.repo.get_az_df(date_diff, query, row['DBKey'])
+                    az_sql_name = row['SQLName'].replace('Log Count', '').strip()
+                    az_log_df = self.repo.get_az_df(date_diff, query, row['DBKey'])
+                    az_log_list.append([az_log_df, az_sql_name])
                 if 'SF' in row['SQLName']:
-                    sf_query = self.repo.get_sf_df(query, date_diff)
-                    sf_query.rename(columns={'input_correlation_id':column_name}, inplace=True)
-                    sf_log_list.append([sf_query, row['SQLName'].replace('Log Count', '').strip()])
+                    sf_sql_name = row['SQLName'].replace('Log Count', '').strip()
+                    sf_log_df = self.repo.get_sf_df(query, date_diff)
+                    sf_log_df.rename(columns={'input_correlation_id':'correlationid'}, inplace=True)
+                    sf_log_df.rename(columns={'input_correlationid':'correlationid'}, inplace=True)
+                    sf_log_list.append([sf_log_df, sf_sql_name])
 
-        for sf_df, sf_sql_name in  sf_log_list:
-            if counts is not None and counts == True:
-                # Count differences from azure df to snowflakes df
-                az_not_in_sf = get_sf_azure_diff(az_df,sf_df,column_name, counts=None)
-                self.name_list.append(f'{az_sql_name} - {sf_sql_name}')
-                self.diff_list.append(az_not_in_sf)
-                self.create_date_list.append(date_diff)
+        for [az_df, az_name], [sf_df, sf_name] in list(zip(az_log_list, sf_log_list)):
+            az_not_in_sf = get_sf_azure_diff(az_df,sf_df,column_name,counts=counts)
+            self.name_list.append(f'{az_name} - {sf_name}')
+            self.diff_list.append({'Name': f'{az_name} - {sf_name}', 'Difference': az_not_in_sf, 'Create Date': date_diff})
+            self.create_date_list.append(date_diff)
+            if counts is not None and counts is True:
                 self.log_diff_df = pd.DataFrame({'Name': self.name_list, 'Difference': self.diff_list, 'Create Date': self.create_date_list})
             else:
-                # Get column name's data differences from azure df to snowflakes df
-                az_not_in_sf = get_sf_azure_diff(az_df,sf_df,column_name)
-                self.log_diff_df = az_not_in_sf[column_name]
-
+                self.log_diff_df = self.diff_list[0]['Difference']
         return self.log_diff_df
-    
+
     def clear_cache(self):
         print('Clearing cache... {}'.format(self.repo.ld_cache))
         try:
