@@ -69,7 +69,7 @@ class LogDiff:
 
     def get_log_diff_data_from_se_id_date(self, scoring_engine_id, date_diff, column_name):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
-        # print(result_df)
+        print(result_df)
         with pd.ExcelWriter(diff_report) as writer:  
             result_df.to_excel(writer, index=False)
 
@@ -99,6 +99,7 @@ class LogDiff:
         # Parse df, get differences, and return counts based on the same criteria
         az_log_list=[]
         sf_log_list=[]
+        log_diff_list=[]
         log_diff_summary = self.repo.get_log_diff_queries(scoring_engine_id, freq, env)
         if not log_diff_summary.empty and len(log_diff_summary) > 0:
             for idx, row in log_diff_summary.iterrows():
@@ -119,12 +120,14 @@ class LogDiff:
         for [az_df, az_name], [sf_df, sf_name] in list(zip(az_log_list, sf_log_list)):
             az_not_in_sf = get_sf_azure_diff(az_df,sf_df,column_name,counts=counts)
             self.name_list.append(f'{az_name} - {sf_name}')
-            self.diff_list.append({'Name': f'{az_name} - {sf_name}', 'Difference': az_not_in_sf, 'Create Date': date_diff})
+            self.diff_list.append(az_not_in_sf)
             self.create_date_list.append(date_diff)
             if counts is not None and counts is True:
                 self.log_diff_df = pd.DataFrame({'Name': self.name_list, 'Difference': self.diff_list, 'Create Date': self.create_date_list})
             else:
-                self.log_diff_df = self.diff_list[0]['Difference']
+                for i in az_not_in_sf[column_name]:
+                    log_diff_list.append(i)
+                self.log_diff_df = pd.DataFrame({'Difference': log_diff_list})
         return self.log_diff_df
 
     def clear_cache(self):
