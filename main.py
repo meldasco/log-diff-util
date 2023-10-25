@@ -171,6 +171,7 @@ def check_if_date(date_text):
 
 def check_difference(*argv):
     log_diff = LogDiff()
+    
     if len(argv) == 3:
         if check_if_date(argv[2]) is False and check_if_date(argv[3]) is True and 'diffdata' in sys.argv:
             print('one')
