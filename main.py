@@ -69,7 +69,7 @@ class LogDiff:
 
     def get_log_diff_data_from_se_id_date(self, scoring_engine_id, date_diff, column_name):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
-        print(result_df)
+        # print(result_df)
         with pd.ExcelWriter(diff_report) as writer:  
             result_df.to_excel(writer, index=False)
 
@@ -125,8 +125,10 @@ class LogDiff:
             if counts is not None and counts is True:
                 self.log_diff_df = pd.DataFrame({'Name': self.name_list, 'Difference': self.diff_list, 'Create Date': self.create_date_list})
             else:
+                print(az_not_in_sf)
                 for i in az_not_in_sf[column_name]:
                     log_diff_list.append(i)
+                log_diff_list = list(set(log_diff_list))
                 self.log_diff_df = pd.DataFrame({'Difference': log_diff_list})
         return self.log_diff_df
 
