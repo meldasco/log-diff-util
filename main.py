@@ -81,8 +81,27 @@ class LogDiff:
             date_range_list.append(str(date_range.date()))
         
         for date_diff in date_range_list:
-            for scoring_engine_id in self.scoring_engine_ids:
-                date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
+            # use this for specific ScoringEngineID
+            date_range_df = self.parse_compare(10006, self.freq, date_diff, self.env, column_name, counts=True) 
+
+            # use this for all ScoringEngineID
+            # for scoring_engine_id in self.scoring_engine_ids:
+            #     date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
+
+            print(date_range_df)
+            with pd.ExcelWriter(date_range_report) as writer:  
+                date_range_df.to_excel(writer, index=False)
+    
+    def get_log_diff_from_se_id_date_range(self, column_name, scoring_engine_id, start_date, end_date):
+        date_range_list=[]
+        date_ranges = pd.date_range(start=start_date, end=end_date)
+
+        for date_range in date_ranges:
+            date_range_list.append(str(date_range.date()))
+        
+        for date_diff in date_range_list:
+            date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True) 
+
             print(date_range_df)
             with pd.ExcelWriter(date_range_report) as writer:  
                 date_range_df.to_excel(writer, index=False)
@@ -152,15 +171,23 @@ def check_if_date(date_text):
 
 def check_difference(*argv):
     log_diff = LogDiff()
-    if len(argv) > 3:
+    if len(argv) == 3:
         if check_if_date(argv[2]) is False and check_if_date(argv[3]) is True and 'diffdata' in sys.argv:
+            print('one')
             log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
         
         elif check_if_date(argv[2]) is False and check_if_date(argv[3]) is True:
+            print('two')
             log_diff.get_log_diff_from_se_id_date(argv[1], argv[2], argv[3])
     
         elif check_if_date(argv[2]) is True and check_if_date(argv[3]) is True:
+            print('three')
             log_diff.get_log_diff_from_date_range(argv[1], argv[2], argv[3])
+
+    elif len(argv) > 3:
+        if (check_if_date(argv[3]) is True and check_if_date(argv[4]) is True):
+            print('four')
+            log_diff.get_log_diff_from_se_id_date_range(argv[1], argv[2], argv[3], argv[4])
     
     if len(argv) < 3:
         if 'clearcache' not in sys.argv:
