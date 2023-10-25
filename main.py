@@ -5,9 +5,9 @@
 - Update installed pip "python -m pip install --upgrade pip"
 - Install requirements "python -m pip install -r requirements.txt"
 - To Run using Terminal:
-    - type "python -B main.py <scoring engine id> <specific date> <column name> diffdata"   --> For specific project, date and difference data
-    - type "python -B main.py <scoring engine id> <specific date> <column name>"            --> For specific project and date
-    - type "python -B main.py <start date> <end date> <column name>"                        --> For all project and date range
+    - type "python -B main.py <column name> <scoring engine id> <specific date> diffdata"   --> For specific project, date and difference data
+    - type "python -B main.py <column name> <scoring engine id> <specific date>"            --> For specific project and date
+    - type "python -B main.py <column name> <start date> <end date>"                        --> For all project and date range
     - type "python -B main.py <column name>"                                                --> For all project of today's date
 
     *Sample Run Syntax: python -B main.py 10007 2023-10-09 correlationid diffdata
@@ -61,19 +61,19 @@ class LogDiff:
             for idx, row in scoring_engine.iterrows():
                 self.scoring_engine_ids.append(row['ScoringEngineId'])
 
-    def get_log_diff_from_se_id_date(self, scoring_engine_id, date_diff, column_name):
+    def get_log_diff_from_se_id_date(self, column_name, scoring_engine_id, date_diff, ):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
         print(result_df)
-        with pd.ExcelWriter(diff_report) as writer:  
-            result_df.to_excel(writer, index=False)
+        # with pd.ExcelWriter(diff_report) as writer:  
+        #     result_df.to_excel(writer, index=False)
 
-    def get_log_diff_data_from_se_id_date(self, scoring_engine_id, date_diff, column_name):
+    def get_log_diff_data_from_se_id_date(self, column_name, scoring_engine_id, date_diff):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
         # print(result_df)
         with pd.ExcelWriter(diff_report) as writer:  
             result_df.to_excel(writer, index=False)
 
-    def get_log_diff_from_date_range(self, start_date, end_date, column_name):
+    def get_log_diff_from_date_range(self, column_name, start_date, end_date):
         date_range_list=[]
         date_ranges = pd.date_range(start=start_date, end=end_date)
 
@@ -153,13 +153,13 @@ def check_if_date(date_text):
 def check_difference(*argv):
     log_diff = LogDiff()
     if len(argv) > 3:
-        if check_if_date(argv[1]) is False and check_if_date(argv[2]) is True and 'diffdata' in sys.argv:
+        if check_if_date(argv[2]) is False and check_if_date(argv[3]) is True and 'diffdata' in sys.argv:
             log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
         
-        elif check_if_date(argv[1]) is False and check_if_date(argv[2]) is True:
+        elif check_if_date(argv[2]) is False and check_if_date(argv[3]) is True:
             log_diff.get_log_diff_from_se_id_date(argv[1], argv[2], argv[3])
     
-        elif check_if_date(argv[1]) is True and check_if_date(argv[2]) is True:
+        elif check_if_date(argv[2]) is True and check_if_date(argv[3]) is True:
             log_diff.get_log_diff_from_date_range(argv[1], argv[2], argv[3])
     
     if len(argv) < 3:
