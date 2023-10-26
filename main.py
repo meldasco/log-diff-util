@@ -169,21 +169,17 @@ def check_difference(*argv):
     log_diff = LogDiff()
     
     if len(argv) == 3:
-        if check_if_date(argv[2]) is False and check_if_date(argv[3]) is True and 'diffdata' in sys.argv:
-            print('one')
-            log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
-        
-        elif check_if_date(argv[2]) is False and check_if_date(argv[3]) is True:
-            print('two')
+        if check_if_date(argv[2]) is False and check_if_date(argv[3]) is True:
             log_diff.get_log_diff_from_se_id_date(argv[1], argv[2], argv[3])
     
         elif check_if_date(argv[2]) is True and check_if_date(argv[3]) is True:
-            print('three')
             log_diff.get_log_diff_from_date_range(argv[1], argv[2], argv[3])
 
     elif len(argv) > 3:
-        if (check_if_date(argv[3]) is True and check_if_date(argv[4]) is True):
-            print('four')
+        if check_if_date(argv[2]) is False and check_if_date(argv[3]) is True and 'diffdata' in sys.argv:
+            log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
+
+        elif (check_if_date(argv[3]) is True and check_if_date(argv[4]) is True):
             log_diff.get_log_diff_from_se_id_date_range(argv[1], argv[2], argv[3], argv[4])
     
     if len(argv) < 3:
