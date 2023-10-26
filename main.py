@@ -63,9 +63,9 @@ class LogDiff:
 
     def get_log_diff_from_se_id_date(self, column_name, scoring_engine_id, date_diff, ):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
-        print(result_df)
-        # with pd.ExcelWriter(diff_report) as writer:  
-        #     result_df.to_excel(writer, index=False)
+        # print(result_df)
+        with pd.ExcelWriter(diff_report) as writer:  
+            result_df.to_excel(writer, index=False)
 
     def get_log_diff_data_from_se_id_date(self, column_name, scoring_engine_id, date_diff):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
@@ -81,12 +81,8 @@ class LogDiff:
             date_range_list.append(str(date_range.date()))
         
         for date_diff in date_range_list:
-            # use this for specific ScoringEngineID
-            date_range_df = self.parse_compare(10006, self.freq, date_diff, self.env, column_name, counts=True) 
-
-            # use this for all ScoringEngineID
-            # for scoring_engine_id in self.scoring_engine_ids:
-            #     date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
+            for scoring_engine_id in self.scoring_engine_ids:
+                date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
 
             print(date_range_df)
             with pd.ExcelWriter(date_range_report) as writer:  
