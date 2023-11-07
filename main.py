@@ -183,7 +183,7 @@ def check_difference(*argv):
 
     if len(argv) > 4:
         print(len(argv))
-        if 'diffdata' in sys.argv:
+        if 'diff' in sys.argv:
             log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
 
         elif (check_if_date(argv[3]) is True and check_if_date(argv[4]) is True):
