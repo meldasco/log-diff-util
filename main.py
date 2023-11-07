@@ -63,15 +63,17 @@ class LogDiff:
 
     def get_log_diff_from_se_id_date(self, column_name, scoring_engine_id, date_diff, ):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
-        # print(result_df)
-        with pd.ExcelWriter(diff_report) as writer:  
-            result_df.to_excel(writer, index=False)
+        print(result_df)
+        result_df.to_csv(diff_csv, sep='\t', encoding='utf-8', index=False)
+        # with pd.ExcelWriter(diff_report) as writer:  
+        #     result_df.to_excel(writer, index=False)
 
     def get_log_diff_data_from_se_id_date(self, column_name, scoring_engine_id, date_diff):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
-        # print(result_df)
-        with pd.ExcelWriter(diff_report) as writer:  
-            result_df.to_excel(writer, index=False)
+        print(result_df)
+        result_df.to_csv(diff_csv, sep='\t', encoding='utf-8', index=False)
+        # with pd.ExcelWriter(diff_report) as writer:  
+        #     result_df.to_excel(writer, index=False)
 
     def get_log_diff_from_date_range(self, column_name, start_date, end_date):
         date_range_list=[]
@@ -85,8 +87,9 @@ class LogDiff:
                 date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
 
             print(date_range_df)
-            with pd.ExcelWriter(date_range_report) as writer:  
-                date_range_df.to_excel(writer, index=False)
+            date_range_df.to_csv(diff_range_csv, sep='\t', encoding='utf-8', index=False)
+            # with pd.ExcelWriter(date_range_report) as writer:  
+            #     date_range_df.to_excel(writer, index=False)
     
     def get_log_diff_from_se_id_date_range(self, column_name, scoring_engine_id, start_date, end_date):
         date_range_list=[]
@@ -99,16 +102,18 @@ class LogDiff:
             date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True) 
 
             print(date_range_df)
-            with pd.ExcelWriter(date_range_report) as writer:  
-                date_range_df.to_excel(writer, index=False)
+            date_range_df.to_csv(diff_range_csv, sep='\t', encoding='utf-8', index=False)
+            # with pd.ExcelWriter(date_range_report) as writer:  
+            #     date_range_df.to_excel(writer, index=False)
 
     def get_log_diff_from_today(self, column_name):
         date_diff = self.trigger_time_stamp.strftime("%Y-%m-%d")
         for scoring_engine_id in self.scoring_engine_ids:
             date_today_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
         print(date_today_df)
-        with pd.ExcelWriter(date_today_report) as writer:  
-            date_today_df.to_excel(writer, index=False)
+        date_today_df.to_csv(diff_today_csv, sep='\t', encoding='utf-8', index=False)
+        # with pd.ExcelWriter(date_today_report) as writer:  
+        #     date_today_df.to_excel(writer, index=False)
     
     def parse_compare(self, scoring_engine_id, freq, date_diff, env, column_name, counts=None):
         # Parse df, get differences, and return counts based on the same criteria
@@ -168,21 +173,24 @@ def check_if_date(date_text):
 def check_difference(*argv):
     log_diff = LogDiff()
     
-    if len(argv) == 3:
+    if len(argv) == 4:
+        print(len(argv))
         if check_if_date(argv[2]) is False and check_if_date(argv[3]) is True:
             log_diff.get_log_diff_from_se_id_date(argv[1], argv[2], argv[3])
     
         elif check_if_date(argv[2]) is True and check_if_date(argv[3]) is True:
             log_diff.get_log_diff_from_date_range(argv[1], argv[2], argv[3])
 
-    elif len(argv) > 3:
-        if check_if_date(argv[2]) is False and check_if_date(argv[3]) is True and 'diffdata' in sys.argv:
+    if len(argv) > 4:
+        print(len(argv))
+        if 'diffdata' in sys.argv:
             log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
 
         elif (check_if_date(argv[3]) is True and check_if_date(argv[4]) is True):
             log_diff.get_log_diff_from_se_id_date_range(argv[1], argv[2], argv[3], argv[4])
     
     if len(argv) < 3:
+        print(len(argv))
         if 'clearcache' not in sys.argv:
             log_diff.get_log_diff_from_today(argv[1])
         log_diff.clear_cache()
