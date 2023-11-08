@@ -10,7 +10,7 @@
     - type "python -B main.py <column name> <start date> <end date>"                        --> For all project and date range
     - type "python -B main.py <column name>"                                                --> For all project of today's date
 
-    *Sample Run Syntax: python -B main.py correlationid 10007 2023-10-09 diffdata
+    *Sample Run Syntax: python -B main.py correlationid 10007 2023-10-09 diff
 """
 
 import sys
