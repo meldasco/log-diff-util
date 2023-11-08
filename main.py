@@ -5,12 +5,12 @@
 - Update installed pip "python -m pip install --upgrade pip"
 - Install requirements "python -m pip install -r requirements.txt"
 - To Run using Terminal:
-    - type "python -B main.py <column name> <scoring engine id> <specific date> diffdata"   --> For specific project, date and difference data
+    - type "python -B main.py <column name> <scoring engine id> <specific date> getdata"   --> For specific project, date and difference data
     - type "python -B main.py <column name> <scoring engine id> <specific date>"            --> For specific project and date
     - type "python -B main.py <column name> <start date> <end date>"                        --> For all project and date range
     - type "python -B main.py <column name>"                                                --> For all project of today's date
 
-    *Sample Run Syntax: python -B main.py correlationid 10007 2023-10-09 diff
+    *Sample Run Syntax: python -B main.py correlationid 10007 2023-10-09 getdata
 """
 
 import sys
@@ -183,7 +183,7 @@ def check_difference(*argv):
 
     if len(argv) > 4:
         print(len(argv))
-        if 'diff' in sys.argv:
+        if 'getdata' in sys.argv:
             log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
 
         elif (check_if_date(argv[3]) is True and check_if_date(argv[4]) is True):
