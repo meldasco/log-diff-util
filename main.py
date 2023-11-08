@@ -5,10 +5,11 @@
 - Update installed pip "python -m pip install --upgrade pip"
 - Install requirements "python -m pip install -r requirements.txt"
 - To Run using Terminal:
-    - type "python -B main.py <column name> <scoring engine id> <specific date> getdata"   --> For specific project, date and difference data
-    - type "python -B main.py <column name> <scoring engine id> <specific date>"            --> For specific project and date
-    - type "python -B main.py <column name> <start date> <end date>"                        --> For all project and date range
-    - type "python -B main.py <column name>"                                                --> For all project of today's date
+    - type "python -B main.py <column name> <scoring engine id> <specific date> getdata"                    --> For specific project, date and difference data
+    - type "python -B main.py <column name> <scoring engine id> <specific date>"                            --> For specific project and date
+    - type "python -B main.py <column name> <start date> <end date>"                                        --> For all project and date range
+    - type "python -B main.py <column name> <scoring engine id> <start date> <end date> getrangedata"       --> For specific project, date range and difference data
+    - type "python -B main.py <column name>"                                                                --> For all project of today's date
 
     *Sample Run Syntax: python -B main.py correlationid 10007 2023-10-09 getdata
 """
@@ -71,7 +72,7 @@ class LogDiff:
     def get_log_diff_data_from_se_id_date(self, column_name, scoring_engine_id, date_diff):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
         print(result_df)
-        result_df.to_csv(diff_csv, sep='\t', encoding='utf-8', index=False)
+        result_df.to_csv(diff_csv, sep='\t', header=None, encoding='utf-8', index=False)
         # with pd.ExcelWriter(diff_report) as writer:  
         #     result_df.to_excel(writer, index=False)
 
@@ -102,7 +103,22 @@ class LogDiff:
             date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True) 
 
             print(date_range_df)
-            date_range_df.to_csv(diff_range_csv, sep='\t', encoding='utf-8', index=False)
+            date_range_df.to_csv(diff_range_csv, mode='a', sep='\t', encoding='utf-8', index=False)
+            # with pd.ExcelWriter(date_range_report) as writer:  
+            #     date_range_df.to_excel(writer, index=False)
+    
+    def get_log_diff_data_from_se_id_date_range(self, column_name, scoring_engine_id, start_date, end_date):
+        date_range_list=[]
+        date_ranges = pd.date_range(start=start_date, end=end_date)
+
+        for date_range in date_ranges:
+            date_range_list.append(str(date_range.date()))
+        
+        for date_diff in date_range_list:
+            date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name) 
+
+            print(date_range_df)
+            date_range_df.to_csv(diff_range_csv, mode='a', header=None, sep='\t', encoding='utf-8', index=False)
             # with pd.ExcelWriter(date_range_report) as writer:  
             #     date_range_df.to_excel(writer, index=False)
 
@@ -185,6 +201,9 @@ def check_difference(*argv):
         print(len(argv))
         if 'getdata' in sys.argv:
             log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
+
+        elif 'getrangedata' in sys.argv:
+            log_diff.get_log_diff_data_from_se_id_date_range(argv[1], argv[2], argv[3], argv[4])
 
         elif (check_if_date(argv[3]) is True and check_if_date(argv[4]) is True):
             log_diff.get_log_diff_from_se_id_date_range(argv[1], argv[2], argv[3], argv[4])
