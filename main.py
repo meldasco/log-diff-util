@@ -78,6 +78,7 @@ class LogDiff:
 
     def get_log_diff_from_date_range(self, column_name, start_date, end_date):
         date_range_list=[]
+        date_range_df=None
         date_ranges = pd.date_range(start=start_date, end=end_date)
 
         for date_range in date_ranges:
@@ -88,12 +89,14 @@ class LogDiff:
                 date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True)
 
             print(date_range_df)
-            date_range_df.to_csv(diff_range_csv, sep='\t', encoding='utf-8', index=False)
             # with pd.ExcelWriter(date_range_report) as writer:  
             #     date_range_df.to_excel(writer, index=False)
+        date_range_df.to_csv(diff_range_csv, sep='\t', encoding='utf-8', index=False)
+            
     
     def get_log_diff_from_se_id_date_range(self, column_name, scoring_engine_id, start_date, end_date):
         date_range_list=[]
+        date_range_df=None
         date_ranges = pd.date_range(start=start_date, end=end_date)
 
         for date_range in date_ranges:
@@ -103,12 +106,14 @@ class LogDiff:
             date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name, counts=True) 
 
             print(date_range_df)
-            date_range_df.to_csv(diff_range_csv, mode='a', sep='\t', encoding='utf-8', index=False)
             # with pd.ExcelWriter(date_range_report) as writer:  
             #     date_range_df.to_excel(writer, index=False)
+        date_range_df.to_csv(diff_range_csv, mode='a', sep='\t', encoding='utf-8', index=False)
+            
     
     def get_log_diff_data_from_se_id_date_range(self, column_name, scoring_engine_id, start_date, end_date):
         date_range_list=[]
+        date_range_df=None
         date_ranges = pd.date_range(start=start_date, end=end_date)
 
         for date_range in date_ranges:
@@ -118,9 +123,10 @@ class LogDiff:
             date_range_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name) 
 
             print(date_range_df)
-            date_range_df.to_csv(diff_range_csv, mode='a', header=None, sep='\t', encoding='utf-8', index=False)
             # with pd.ExcelWriter(date_range_report) as writer:  
             #     date_range_df.to_excel(writer, index=False)
+        date_range_df.to_csv(diff_range_csv, mode='a', header=None, sep='\t', encoding='utf-8', index=False)
+            
 
     def get_log_diff_from_today(self, column_name):
         date_diff = self.trigger_time_stamp.strftime("%Y-%m-%d")
