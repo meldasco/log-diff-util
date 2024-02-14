@@ -1,19 +1,30 @@
 """
 - In Terminal, run "python -m venv .venv"
+
+    or for a lower Python version:
+    - Press Ctrl + Shift + P, select 'Python: Create Environment', then select a version
+
 - Press Ctrl + Shift + P, select 'Python: Select Interpreter',
-    then 'Enter interpreter path' manually in ".venv\Scripts\python.exe"
+    then 'Enter interpreter path' manually from ".venv\Scripts\python.exe"
+
+    if interpreter is not reflecting, try restart VSCode
+
 - Update installed pip "python -m pip install --upgrade pip"
+
 - Install requirements "python -m pip install -r requirements.txt"
+
 - To Run using Terminal:
-    - type "python -B main.py <column name> <scoring engine id> <specific date> getdata"                    --> For specific project, date and difference data
-    - type "python -B main.py <column name> <scoring engine id> <specific date>"                            --> For specific project and date
-    - type "python -B main.py <column name> <start date> <end date>"                                        --> For all project and date range
-    - type "python -B main.py <column name> <scoring engine id> <start date> <end date> getrangedata"       --> For specific project, date range and difference data
-    - type "python -B main.py <column name>"                                                                --> For all project of today's date
+    - type "python -B main.py <column name> <scoring engine id> <specific date> data"            --> For specific project, date and difference data
+    - type "python -B main.py <column name> <scoring engine id> <specific date>"                 --> For specific project and date
+    - type "python -B main.py <column name> <start date> <end date>"                             --> For all project and date range
+    - type "python -B main.py <column name> <scoring engine id> <start date> <end date> range"   --> For specific project, date range and difference data
+    - type "python -B main.py <column name>"                                                     --> For all project of today's date
 
-    *Sample Run Syntax: python -B main.py correlationid 10007 2023-10-09 getdata
+- Sample Run Syntax:
+    python -B main.py correlationid 10007 2024-01-04 data
+
 """
-
+import csv
 import sys
 import json
 from datetime import datetime
@@ -72,7 +83,7 @@ class LogDiff:
     def get_log_diff_data_from_se_id_date(self, column_name, scoring_engine_id, date_diff):
         result_df = self.parse_compare(scoring_engine_id, self.freq, date_diff, self.env, column_name)
         print(result_df)
-        result_df.to_csv(diff_csv, sep='\t', header=None, encoding='utf-8', index=False)
+        result_df.to_csv(diff_csv, header=None, encoding='utf-8', quotechar="'", index=False, lineterminator=',\r\n', quoting=csv.QUOTE_ALL)
         # with pd.ExcelWriter(diff_report) as writer:  
         #     result_df.to_excel(writer, index=False)
 
@@ -92,8 +103,7 @@ class LogDiff:
             # with pd.ExcelWriter(date_range_report) as writer:  
             #     date_range_df.to_excel(writer, index=False)
         date_range_df.to_csv(diff_range_csv, sep='\t', encoding='utf-8', index=False)
-            
-    
+   
     def get_log_diff_from_se_id_date_range(self, column_name, scoring_engine_id, start_date, end_date):
         date_range_list=[]
         date_range_df=None
@@ -109,8 +119,7 @@ class LogDiff:
             # with pd.ExcelWriter(date_range_report) as writer:  
             #     date_range_df.to_excel(writer, index=False)
         date_range_df.to_csv(diff_range_csv, mode='a', sep='\t', encoding='utf-8', index=False)
-            
-    
+  
     def get_log_diff_data_from_se_id_date_range(self, column_name, scoring_engine_id, start_date, end_date):
         date_range_list=[]
         date_range_df=None
@@ -125,8 +134,7 @@ class LogDiff:
             print(date_range_df)
             # with pd.ExcelWriter(date_range_report) as writer:  
             #     date_range_df.to_excel(writer, index=False)
-        date_range_df.to_csv(diff_range_csv, mode='a', header=None, sep='\t', encoding='utf-8', index=False)
-            
+            date_range_df.to_csv(diff_range_csv, mode='a', header=None, encoding='utf-8', quotechar="'", index=False, lineterminator=',\r\n', quoting=csv.QUOTE_ALL)
 
     def get_log_diff_from_today(self, column_name):
         date_diff = self.trigger_time_stamp.strftime("%Y-%m-%d")
@@ -136,7 +144,8 @@ class LogDiff:
         date_today_df.to_csv(diff_today_csv, sep='\t', encoding='utf-8', index=False)
         # with pd.ExcelWriter(date_today_report) as writer:  
         #     date_today_df.to_excel(writer, index=False)
-    
+
+
     def parse_compare(self, scoring_engine_id, freq, date_diff, env, column_name, counts=None):
         # Parse df, get differences, and return counts based on the same criteria
         az_log_list=[]
@@ -164,8 +173,9 @@ class LogDiff:
             self.name_list.append(f'{az_name} - {sf_name}')
             self.diff_list.append(az_not_in_sf)
             self.create_date_list.append(date_diff)
+            print(f'{az_name} - {sf_name}')
             if counts is not None and counts is True:
-                self.log_diff_df = pd.DataFrame({'Name': self.name_list, 'Difference': self.diff_list, 'Create Date': self.create_date_list})
+                self.log_diff_df = pd.DataFrame({'DB Name': self.name_list, 'Found Difference': self.diff_list, 'Create Date': self.create_date_list})
             else:
                 print(az_not_in_sf)
                 for i in az_not_in_sf[column_name]:
@@ -205,11 +215,11 @@ def check_difference(*argv):
 
     if len(argv) > 4:
         print(len(argv))
-        if 'data' in sys.argv:
-            log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
-
-        elif 'range' in sys.argv:
-            log_diff.get_log_diff_data_from_se_id_date_range(argv[1], argv[2], argv[3], argv[4])
+        if 'data' in sys.argv: 
+            if len(argv) == 6:
+                log_diff.get_log_diff_data_from_se_id_date_range(argv[1], argv[2], argv[3], argv[4])
+            else:
+                log_diff.get_log_diff_data_from_se_id_date(argv[1], argv[2], argv[3])
 
         elif (check_if_date(argv[3]) is True and check_if_date(argv[4]) is True):
             log_diff.get_log_diff_from_se_id_date_range(argv[1], argv[2], argv[3], argv[4])
